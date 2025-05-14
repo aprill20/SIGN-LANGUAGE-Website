@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Language GIF Viewer with Voice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f5;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 14px;
+      font-size: 18px;
+      margin: 10px auto;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #gifContainer img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #gifContainer p {
+      color: red;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sign Language GIF Viewer</h1>
+  <input type="text" id="wordInput" placeholder="Type or say a word (e.g., monday)">
+  <button onclick="showGIF()">Show Sign</button>
+  <button onclick="startListening()">🎤 Speak</button>
+  <div id="gifContainer"></div>
+
+  <script>
+    const gifMap = {
+      "weekend": "https://media.giphy.com/media/l0MYxci0TrPAtdI4M/giphy.gif",
+      "saturday": "https://media.giphy.com/media/3o7TKvgIfMH39EP5IY/giphy.gif",
+      "sunday": "https://media.giphy.com/media/3o7TKDBfXnksZ52Ya4/giphy.gif",
+      "thursday": "https://media.giphy.com/media/3o7TKvdJr4YQ4NM73q/giphy.gif",
+      "friday": "https://media.giphy.com/media/3o7TKSmtRzKFHFg7F6/giphy.gif",
+      "wednesday": "https://media.giphy.com/media/3o7TKErvQN3MOi00DK/giphy.gif",
+      "monday": "https://media.giphy.com/media/26hitcjVxonXbZhn2/giphy.gif",
+      "tuesday": "https://media.giphy.com/media/l0MYDvEZYFpwmozFC/giphy.gif",
+      "spring": "https://media.giphy.com/media/l0HlAjpuqppORFSrm/giphy.gif",
+      "march": "https://media.giphy.com/media/l0HlF8Kn3yLhidZba/giphy.gif",
+      "january": "https://media.giphy.com/media/l0HlCjvtgoLHtQJMs/giphy.gif",
+      "november": "https://media.giphy.com/media/l0HlANcjqLhjFxzLG/giphy.gif",
+      "july": "https://media.giphy.com/media/3o6ZsS91VFLDRrjOiA/giphy.gif",
+      "december": "https://media.giphy.com/media/l0HlyG5eKTWjQL7mE/giphy.gif",
+      "summer": "https://media.giphy.com/media/3o6ZsZ8y1437VxVhXa/giphy.gif",
+      "april": "https://media.giphy.com/media/3o6ZtcIimJaiei8Zig/giphy.gif",
+      "february": "https://media.giphy.com/media/l0HlTbD8Be5QjYxPi/giphy.gif",
+	  "hello":"https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXc3ZnhuYzZvZmhhM2k4YnhodTE2aWxlb29peHc1Ym9iZHhiMWlzdyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKNKOfKlIhbD3gY/giphy.gif",
+	  "how are you":"https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmlhdWt1Yml4eDRjOG44b2g4Y3YycDE5YTA1dGwzaDFpajU5ODhqdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKDw5NA17fKJVWU/giphy.gif",
+	  "how are you doing":"https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmlhdWt1Yml4eDRjOG44b2g4Y3YycDE5YTA1dGwzaDFpajU5ODhqdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26FLgm33ve3iUexZC/giphy.gif",
+	  "i am fine":"https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGs5c3ZyNDNkajAzbmZ3d2Y0am9sbTdqaDY1NnBnOXNiaWxmMG01byZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4Jzd71ci3msO66ac/giphy.gif",
+	  "i want": "https://giphy.com/signwithrobert/emotions/positive-emotions",
+	  "i like it":"https://media.giphy.com/media/26FLetDV4MHaixWHm/giphy.gif",
+	  "i dont like this":"https://media.giphy.com/media/l4Jzdp8TJ2DDxeVna/giphy.gif",
+	  " i dont know":"https://media.giphy.com/media/26FLfRk8VOFZOem9G/giphy.gif",
+	  "touched": "https://media.giphy.com/media/3o7TKDVhbjjmvECGkg/giphy.gif",
+	  "honored": "https://media.giphy.com/media/3o7TKyGh4jg5h0dznG/giphy.gif?cid=ecf05e47ex3s5qf13dm1ec7q7wvmg1wtsyd4a59w327lvrkr&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "proud": "https://media.giphy.com/media/3o7TKw7vWi1sWxSdSo/giphy.gif?cid=ecf05e47ex3s5qf13dm1ec7q7wvmg1wtsyd4a59w327lvrkr&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "stunned": "https://media.giphy.com/media/3o7TKxPBLnq1sOQQRq/giphy.gif?cid=ecf05e47ex3s5qf13dm1ec7q7wvmg1wtsyd4a59w327lvrkr&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "i understand": "https://media.giphy.com/media/l4Jz6lkydXsNEfuWk/giphy.gif",
+	  "please repeat": "https://media.giphy.com/media/l4JyS41E9OFXw7ixi/giphy.gif",
+	  "i enjoy this": "https://media.giphy.com/media/26FLfb0l8c1sRZxKM/giphy.gif",
+	  "maybe": "https://media.giphy.com/media/l4Jzdw22eZ8QEKCKQ/giphy.gif",
+	  "no": "https://media.giphy.com/media/l4Jz4faxuS1FiSEV2/giphy.gif",
+	  "it is clear": "https://media.giphy.com/media/l4JzbRkWbWz9YUnsY/giphy.gif",
+	  "shy": "https://media.giphy.com/media/3o7TKDU7dUkGWTA7m0/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "surprise": "https://media.giphy.com/media/l4JyW2Wo0qjWkWtri/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "kind": "https://media.giphy.com/media/3o7TKvPoxDMYr9pYf6/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "thankful": "https://media.giphy.com/media/l4Jz8Cw5J14PjHBa8/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "bow": "https://media.giphy.com/media/26FLhbWIc5tIICo3m/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  " i will help you": "https://media.giphy.com/media/26FKWxLSlHTGeIdlS/giphy.gif",
+	  "it is really hard": "https://media.giphy.com/media/l4Jz9lYqkZMIcJ5ra/giphy.gif",
+	  "are you okay?": "https://media.giphy.com/media/26FL0kXeJG1UShgje/giphy.gif",
+	  "it is not clear": "https://media.giphy.com/media/26FLjdehXn53grogU/giphy.gif",
+	  "what are you doing": "https://media.giphy.com/media/26FLcXu6TYYAc39vO/giphy.gif",
+	  "good morning": "https://media.giphy.com/media/26FLchGgqamznV64E/giphy.gif",
+	  "good afternoon": "https://media.giphy.com/media/l4JzaRsX52k8glIFa/giphy.gif",
+	  "good evening": "https://media.giphy.com/media/l4JzdrbDeU2lMMrde/giphy.gif",
+	  "good night": "https://media.giphy.com/media/l4Jz5WK4Uddr8KsSc/giphy.gif",
+	  "yes": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWtoYnQxbTFwNnZ3aXdteHgwcDRxazludXZkaGFuNzJjMmNmYWkxYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4Jz0THKhQLo61NBK/giphy.gif",
+	  "i dont understand": "https://media.giphy.com/media/26FL0X4d3Epuecpj2/giphy.gif",
+	  "applause": "https://media.giphy.com/media/26FLhbWIc5tIICo3m/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "thank you": "https://media.giphy.com/media/l0MYrlUnFtq25TQR2/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "loving": "https://media.giphy.com/media/26hiuhblBOTf7z5Ic/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "please": "https://media.giphy.com/media/l0MYEXSLkUipy1zVK/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "standing ovation": "https://media.giphy.com/media/l0MYLYTVUbHaO8hfW/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "heart": "https://media.giphy.com/media/l4JzgIe1WIyZsBQju/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "when is class finished": "https://media.giphy.com/media/l4JzaqiqnK8dnSryU/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	  "thank you so much": "https://media.giphy.com/media/3o7TKUtetZv6DGRJxS/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+	  "close call": "https://media.giphy.com/media/26DOIplmEmpvB87mw/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+	"award": "https://media.giphy.com/media/3o7TKRgyUt5By1g4k8/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+	"her": "https://media.giphy.com/media/3o7TKQGJ05kxCcnoNW/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+	"funny": "https://media.giphy.com/media/l4Jz8GDSAuz8psFJ6/giphy.gif",
+	"fun": "https://media.giphy.com/media/d4aVl9QOhsvFdOLe/giphy.gif",
+	"laugh": "https://media.giphy.com/media/26FL5gwXdOJQuQHKM/giphy.gif",
+	"game": "https://media.giphy.com/media/l4JzddtxqjbZ5frxu/giphy.gif",
+	"play": "https://media.giphy.com/media/26FKSIUyhJjoQsbOo/giphy.gif",
+	"like": "https://media.giphy.com/media/l4JyK1dzgcrAKfjRS/giphy.gif",
+	"fall in love": "https://media.giphy.com/media/l4JyK0oGAnAMyHxtK/giphy.gif",
+	"enemy": "https://media.giphy.com/media/26FLb5VDSM4DpyNDG/giphy.gif",
+	"love": "https://media.giphy.com/media/l4Jz6dIf7UUy4YwXm/giphy.gif",
+	"sweetheart": "https://media.giphy.com/media/l4Jz6dIf7UUy4YwXm/giphy.gif",
+	"best friends": "https://media.giphy.com/media/l4JzhfzkJj6Vm8Fm8/giphy.gif",
+	"waste time": "https://media.giphy.com/media/l4Jz72XkGTmij0xmU/giphy.gif",
+	"shocked": "https://media.giphy.com/media/26FKYUPnxKSNTguKk/giphy.gif",
+	"awesome": "https://media.giphy.com/media/26FLfw01s8KVTiQgg/giphy.gif",
+	"family": "https://media.giphy.com/media/d4aUiPSexmMkqSnC/giphy.gif?cid=ecf05e47tq9druvt61mc73mv2brfaauk5ftangfsjn9gjadl&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"rose": "https://media.giphy.com/media/26FLc7DWQxwi917Wg/giphy.gif?cid=ecf05e471hrb8d2yht2lueembu7pstxzexgjuq34vl8sexi5&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"nervous": "https://media.giphy.com/media/3o7TKPtsbDsWhrs9zO/giphy.gif?cid=ecf05e471hrb8d2yht2lueembu7pstxzexgjuq34vl8sexi5&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+ "child": "https://media.giphy.com/media/3o7TKPtsbDsWhrs9zO/giphy.gif?cid=ecf05e471hrb8d2yht2lueembu7pstxzexgjuq34vl8sexi5&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"sister": "https://media.giphy.com/media/3o6Ztqnz8kLL7LbRlu/giphy.gif?cid=ecf05e471hrb8d2yht2lueembu7pstxzexgjuq34vl8sexi5&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"young": "https://media.giphy.com/media/3oz8xDWQ6dRu6l4nOo/giphy.gif?cid=ecf05e471hrb8d2yht2lueembu7pstxzexgjuq34vl8sexi5&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"dancing": "https://media.giphy.com/media/3o7TKTB3SyXmuwILL2/giphy.gif?cid=ecf05e47q64a9xgl2iwu7u3wswskkvkvo0gmsraxljrwpn67&ep=v1_gifs_related&rid=giphy.gif&ct=g",
+ 
+"social media": "https://media.giphy.com/media/3o7TKtUu2kNejSMvx6/giphy.gif",
+ 
+"internet": "https://media.giphy.com/media/3o7TKv07862l8zf6F2/giphy.gif",
+ 
+"delete": "https://media.giphy.com/media/3o7TKxfqDY7WnEQQhi/giphy.gif",
+ "cool": "https://media.giphy.com/media/l4JyXfIJa8q88rj2g/giphy.gif",
+ "vlog": "https://media.giphy.com/media/3o7TKG4WcivDpLsR44/giphy.gif",
+ 
+"Instagram": "https://media.giphy.com/media/3o7TKyNMjlXizeEpdS/giphy.gif",
+ 
+"twitter": "https://media.giphy.com/media/3o7TKxRSeB8NJ42rjG/giphy.gif",
+ 
+"facebook": "https://media.giphy.com/media/l0MYFAKiWhLa2rja0/giphy.gif",
+ 
+"gold": "https://media.giphy.com/media/26FL98lUMiGCMJv4Q/giphy.gif",
+ "seriously?": "https://media.giphy.com/media/26FKSD8CaY4RB0uk0/giphy.gif",
+ "when is class finished?": "https://media.giphy.com/media/l4JzaqiqnK8dnSryU/giphy.gif",
+ "where is the next class?": "https://media.giphy.com/media/26FL3BSi6RctToHQI/giphy.gif",
+ "what is for lunch?": "https://media.giphy.com/media/26FKSltxCnu7CZdG8/giphy.gif",
+ "which building?": "https://media.giphy.com/media/26FKZ9uV7GXgmHWKI/giphy.gif",
+ "can i borrow that?": "https://media.giphy.com/media/26FLh7yYJENZu7Cla/giphy.gif",
+ "pink": "https://media.giphy.com/media/l4Jzcqdxyi3K3JLqM/giphy.gif",
+ 
+"orang": "https://media.giphy.com/media/1j15Lb85E1MzbGdq/giphy.gif",
+ 
+"yellow": "https://media.giphy.com/media/l4Jz5mEdIwH793X32/giphy.gif",
+ 
+"color": "https://media.giphy.com/media/l4Jz591VsHFxKBDcA/giphy.gif",
+ 
+"red": "https://media.giphy.com/media/l4Jzb897wzkAYERji/giphy.gif",
+ 
+"brown": "https://media.giphy.com/media/26FL1Z4aQQggwu57G/giphy.gif",
+ 
+"green": "https://media.giphy.com/media/26FLgVlzonDpaONFu/giphy.gif",
+ 
+"blue": "https://media.giphy.com/media/l4JyUSYJQFs4nJpU4/giphy.gif",
+ 
+"tan": "https://media.giphy.com/media/26FLeg7TsiyXmXXLa/giphy.gif",
+ 
+"shapes": "https://media.giphy.com/media/26FL0p9XxKszE8Q9y/giphy.gif",
+ 
+"circle": "https://media.giphy.com/media/l4Jz0q73wFyvoE6LC/giphy.gif",
+ "rectangle": "https://media.giphy.com/media/26FL021unZdN2Xkbu/giphy.gif",
+ 
+"square": "https://media.giphy.com/media/26FLjs6ZkIbZrPzpK/giphy.gif"
+ 
+ 
+ 
+    };
+
+    function showGIF() {
+      const word = document.getElementById("wordInput").value.trim().toLowerCase();
+      const gifContainer = document.getElementById("gifContainer");
+
+      if (gifMap[word]) {
+        gifContainer.innerHTML = `<img src="${gifMap[word]}" alt="Sign for ${word}">`;
+      } else {
+        gifContainer.innerHTML = `<p>❌ No GIF found for "<strong>${word}</strong>"</p>`;
+      }
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const speechResult = event.results[0][0].transcript.toLowerCase().trim();
+        document.getElementById("wordInput").value = speechResult;
+        showGIF();
+      };
+
+      recognition.onerror = function(event) {
+        alert('Speech recognition error: ' + event.error);
+      };
+    }
+  </script>
+</body>
+</html>
